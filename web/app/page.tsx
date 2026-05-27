@@ -124,6 +124,7 @@ function MobileMenu() {
     { href: "#documentacao", label: "Documentação" },
     { href: "#exemplos", label: "Exemplos" },
     { href: "#testar", label: "Testar" },
+    { href: "/mcp", label: "MCP" },
   ];
 
   return (
@@ -246,6 +247,9 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
             <a href="#testar" className="hover:text-white transition-colors">
               Testar
             </a>
+            <Link href="/mcp" className="text-violet-400 hover:text-violet-300 transition-colors">
+              MCP
+            </Link>
           </nav>
         </div>
       </header>
