@@ -74,7 +74,7 @@ export default function McpPage() {
           </h1>
           <p className="mt-4 text-lg text-white/50 max-w-2xl leading-relaxed">
             Integre a consulta de CEP diretamente nas suas ferramentas de IA.
-            Claude Code, Cursor, Windsurf, VS Code e qualquer cliente MCP compatível.
+            Claude, ChatGPT, Cursor, Windsurf, VS Code e qualquer cliente MCP compatível.
           </p>
         </div>
 
@@ -204,7 +204,7 @@ export default function McpPage() {
           </div>
 
           {/* Windsurf */}
-          <div>
+          <div className="mb-8">
             <h3 className="text-lg font-semibold mb-3">Windsurf</h3>
             <p className="text-sm text-white/50 mb-4">
               Adicione ao <code className="bg-white/[0.06] text-violet-300 px-1.5 py-0.5 rounded">~/.codeium/windsurf/mcp_config.json</code>:
@@ -217,6 +217,46 @@ export default function McpPage() {
     }
   }
 }`}</CodeBlock>
+          </div>
+
+          {/* ChatGPT */}
+          <div>
+            <h3 className="text-lg font-semibold mb-3">ChatGPT (GPT personalizado)</h3>
+            <p className="text-sm text-white/50 mb-4">
+              O ChatGPT não suporta MCP, mas você pode criar um <strong className="text-white/70">GPT personalizado</strong> com Actions:
+            </p>
+            <ol className="text-sm text-white/50 space-y-3 list-decimal list-inside leading-relaxed">
+              <li>
+                Acesse{" "}
+                <a href="https://chatgpt.com/gpts/editor" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors">
+                  chatgpt.com/gpts/editor
+                </a>
+              </li>
+              <li>Na aba <strong className="text-white/70">Configure</strong>, dê um nome (ex: &quot;Consulta de CEP&quot;) e uma descrição</li>
+              <li>
+                Em <strong className="text-white/70">Instructions</strong>, cole:
+              </li>
+            </ol>
+            <div className="mt-3 mb-4">
+              <CodeBlock compact>{`Você é um assistente que consulta CEPs brasileiros.
+Use a action buscarCep para consultar por CEP.
+Use a action buscarEndereco para buscar por endereço (UF, cidade, logradouro).
+Sempre formate o resultado de forma clara para o usuário.`}</CodeBlock>
+            </div>
+            <ol start={4} className="text-sm text-white/50 space-y-3 list-decimal list-inside leading-relaxed">
+              <li>
+                Em <strong className="text-white/70">Actions</strong>, clique em <strong className="text-white/70">Create new action</strong>
+              </li>
+              <li>
+                Clique em <strong className="text-white/70">&quot;Import from URL&quot;</strong> e cole:
+              </li>
+            </ol>
+            <div className="mt-3 mb-4">
+              <CodeBlock compact>{`https://consultadecep.com/api/openapi`}</CodeBlock>
+            </div>
+            <ol start={6} className="text-sm text-white/50 space-y-3 list-decimal list-inside leading-relaxed">
+              <li>Clique em <strong className="text-white/70">Save</strong> e pronto — seu GPT já consulta CEPs</li>
+            </ol>
           </div>
         </section>
 
