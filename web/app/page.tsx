@@ -121,6 +121,7 @@ function MobileMenu() {
   const [aberto, setAberto] = useState(false);
 
   const links = [
+    { href: "/consulta", label: "Consultar CEP" },
     { href: "#documentacao", label: "Documentação" },
     { href: "#exemplos", label: "Exemplos" },
     { href: "#testar", label: "Testar" },
@@ -238,6 +239,9 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
             </span>
           </Link>
           <nav className="hidden sm:flex items-center gap-8 text-[13px] font-medium text-white/50">
+            <Link href="/consulta" className="hover:text-white transition-colors">
+              Consultar CEP
+            </Link>
             <a href="#documentacao" className="hover:text-white transition-colors">
               Documentação
             </a>
