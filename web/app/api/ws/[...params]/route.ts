@@ -19,18 +19,26 @@ export async function GET(
 ) {
   const { params: segmentos } = await params;
 
+  // Debug temporário
+  if (segmentos[0] === '_debug') {
+    return NextResponse.json({ segmentos, url: request.url }, { headers });
+  }
+
+  const ultimo = segmentos[segmentos.length - 1];
+  const isJson = ultimo === 'json' || ultimo === 'json/';
+
   // /ws/{cep}/json → segmentos = [cep, "json"]
   // /ws/{uf}/{cidade}/{logradouro}/json → segmentos = [uf, cidade, logradouro, "json"]
-  if (segmentos.length === 2 && segmentos[1] === 'json') {
+  if (segmentos.length === 2 && isJson) {
     return buscarPorCep(segmentos[0]);
   }
 
-  if (segmentos.length === 4 && segmentos[3] === 'json') {
+  if (segmentos.length === 4 && isJson) {
     return buscarPorEndereco(segmentos[0], segmentos[1], segmentos[2]);
   }
 
   return NextResponse.json(
-    { erro: true, mensagem: 'Rota inválida.' },
+    { erro: true, mensagem: 'Rota inválida.', debug_segmentos: segmentos },
     { status: 400, headers }
   );
 }
@@ -46,12 +54,16 @@ async function buscarPorCep(cepParam: string) {
   }
 
   // Buscar em logradouros
-  const { data: logradouro } = await supabase
+  const { data: logradouro, error: errLog } = await supabase
     .from('logradouros')
     .select('cep, log_no, log_complemento, tlo_tx, log_sta_tlo, ufe_sg, loc_nu, bai_nu_ini')
     .eq('cep', cep)
     .limit(1)
     .single();
+
+  if (errLog && errLog.code !== 'PGRST116') {
+    return NextResponse.json({ erro: true, debug_error: errLog.message, debug_cep: cep }, { headers });
+  }
 
   if (logradouro) {
     const [bairro, localidade] = await Promise.all([
