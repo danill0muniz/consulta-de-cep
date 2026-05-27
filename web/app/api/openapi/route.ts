@@ -73,7 +73,7 @@ const spec = {
             name: 'logradouro',
             in: 'path',
             required: true,
-            description: 'Nome da rua ou avenida (mínimo 3 caracteres)',
+            description: 'Nome da rua sem prefixo de tipo (ex: use "Diana" ao invés de "Rua Diana", "Paulista" ao invés de "Avenida Paulista"). Mínimo 3 caracteres.',
             schema: { type: 'string', minLength: 3 },
           },
         ],

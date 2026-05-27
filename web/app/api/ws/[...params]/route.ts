@@ -184,10 +184,12 @@ async function buscarPorCep(cepParam: string) {
   return NextResponse.json({ erro: true }, { headers });
 }
 
+const PREFIXOS_LOGRADOURO = /^(rua|avenida|av\.?|alameda|al\.?|travessa|tv\.?|praça|pc\.?|pç\.?|rodovia|rod\.?|estrada|est\.?|largo|viela|beco|passagem|servidão|via)\s+/i;
+
 async function buscarPorEndereco(uf: string, cidade: string, logradouro: string) {
   const ufUpper = uf.toUpperCase();
   const cidadeDecoded = decodeURIComponent(cidade);
-  const logradouroDecoded = decodeURIComponent(logradouro);
+  const logradouroDecoded = decodeURIComponent(logradouro).replace(PREFIXOS_LOGRADOURO, '');
 
   if (!UFS_VALIDAS.includes(ufUpper)) {
     return NextResponse.json({ erro: true, mensagem: 'UF inválida.' }, { status: 400, headers });
