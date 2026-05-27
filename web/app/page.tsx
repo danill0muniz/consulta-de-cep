@@ -290,7 +290,7 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
               <CodeBlock>{`curl ${API_DISPLAY}/ws/01001000/json/`}</CodeBlock>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               {["Sem cadastro", "Sem API key", "Sem limites", "CORS", "HTTPS"].map(
                 (item) => (
                   <span
@@ -301,6 +301,7 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
                   </span>
                 )
               )}
+              <ApiStatus />
             </div>
           </div>
         </div>
