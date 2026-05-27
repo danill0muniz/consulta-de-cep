@@ -5,7 +5,7 @@ const CACHE_CEP = 'public, s-maxage=2592000, stale-while-revalidate=15552000';
 const CACHE_ENDERECO = 'public, s-maxage=2592000, stale-while-revalidate=15552000';
 
 function json(data: unknown, cache: string, status = 200) {
-  return new Response(JSON.stringify(data), {
+  return new Response(JSON.stringify(data, null, 2), {
     status,
     headers: {
       'Content-Type': 'application/json',
@@ -23,6 +23,46 @@ const UFS_VALIDAS = [
   'MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN',
   'RO','RR','RS','SC','SE','SP','TO'
 ];
+
+const UF_INFO: Record<string, { estado: string; regiao: string; ddd: string }> = {
+  AC: { estado: 'Acre', regiao: 'Norte', ddd: '68' },
+  AL: { estado: 'Alagoas', regiao: 'Nordeste', ddd: '82' },
+  AM: { estado: 'Amazonas', regiao: 'Norte', ddd: '92' },
+  AP: { estado: 'Amapá', regiao: 'Norte', ddd: '96' },
+  BA: { estado: 'Bahia', regiao: 'Nordeste', ddd: '71' },
+  CE: { estado: 'Ceará', regiao: 'Nordeste', ddd: '85' },
+  DF: { estado: 'Distrito Federal', regiao: 'Centro-Oeste', ddd: '61' },
+  ES: { estado: 'Espírito Santo', regiao: 'Sudeste', ddd: '27' },
+  GO: { estado: 'Goiás', regiao: 'Centro-Oeste', ddd: '62' },
+  MA: { estado: 'Maranhão', regiao: 'Nordeste', ddd: '98' },
+  MG: { estado: 'Minas Gerais', regiao: 'Sudeste', ddd: '31' },
+  MS: { estado: 'Mato Grosso do Sul', regiao: 'Centro-Oeste', ddd: '67' },
+  MT: { estado: 'Mato Grosso', regiao: 'Centro-Oeste', ddd: '65' },
+  PA: { estado: 'Pará', regiao: 'Norte', ddd: '91' },
+  PB: { estado: 'Paraíba', regiao: 'Nordeste', ddd: '83' },
+  PE: { estado: 'Pernambuco', regiao: 'Nordeste', ddd: '81' },
+  PI: { estado: 'Piauí', regiao: 'Nordeste', ddd: '86' },
+  PR: { estado: 'Paraná', regiao: 'Sul', ddd: '41' },
+  RJ: { estado: 'Rio de Janeiro', regiao: 'Sudeste', ddd: '21' },
+  RN: { estado: 'Rio Grande do Norte', regiao: 'Nordeste', ddd: '84' },
+  RO: { estado: 'Rondônia', regiao: 'Norte', ddd: '69' },
+  RR: { estado: 'Roraima', regiao: 'Norte', ddd: '95' },
+  RS: { estado: 'Rio Grande do Sul', regiao: 'Sul', ddd: '51' },
+  SC: { estado: 'Santa Catarina', regiao: 'Sul', ddd: '48' },
+  SE: { estado: 'Sergipe', regiao: 'Nordeste', ddd: '79' },
+  SP: { estado: 'São Paulo', regiao: 'Sudeste', ddd: '11' },
+  TO: { estado: 'Tocantins', regiao: 'Norte', ddd: '63' },
+};
+
+function enriquecer(dados: Record<string, string>) {
+  const info = UF_INFO[dados.uf] || {};
+  return {
+    ...dados,
+    estado: info.estado || '',
+    regiao: info.regiao || '',
+    ddd: dados.ddd || info.ddd || '',
+  };
+}
 
 export async function GET(
   request: NextRequest,
@@ -57,7 +97,7 @@ async function buscarPorCep(cepParam: string) {
     return json({ erro: true }, CACHE_CEP);
   }
 
-  return json({ ...data, cep: formatarCep(data.cep || cep) }, CACHE_CEP);
+  return json(enriquecer({ ...data, cep: formatarCep(data.cep || cep) }), CACHE_CEP);
 }
 
 const PREFIXOS_LOGRADOURO = /^(rua|avenida|av\.?|alameda|al\.?|travessa|tv\.?|praça|pc\.?|pç\.?|rodovia|rod\.?|estrada|est\.?|largo|viela|beco|passagem|servidão|via)\s+/i;
@@ -116,7 +156,7 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
     const nome = l.log_sta_tlo === 'S' && l.tlo_tx
       ? `${l.tlo_tx} ${l.log_no}` : l.log_no;
 
-    return {
+    return enriquecer({
       cep: formatarCep(l.cep),
       logradouro: nome || '',
       complemento: l.log_complemento || '',
@@ -126,7 +166,7 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
       uf: l.ufe_sg || '',
       ibge: loc?.mun_nu || '',
       gia: '', ddd: '', siafi: '',
-    };
+    });
   });
 
   return json(resultados, CACHE_ENDERECO);
