@@ -57,10 +57,19 @@ const UF_INFO: Record<string, { estado: string; regiao: string; ddd: string }> =
 function enriquecer(dados: Record<string, string>) {
   const info = UF_INFO[dados.uf] || {};
   return {
-    ...dados,
+    cep: dados.cep || '',
+    logradouro: dados.logradouro || '',
+    complemento: dados.complemento || '',
+    unidade: dados.unidade || '',
+    bairro: dados.bairro || '',
+    localidade: dados.localidade || '',
+    uf: dados.uf || '',
     estado: info.estado || '',
     regiao: info.regiao || '',
+    ibge: dados.ibge || '',
+    gia: dados.gia || '',
     ddd: dados.ddd || info.ddd || '',
+    siafi: dados.siafi || '',
   };
 }
 
