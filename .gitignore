@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+*.db
+*.db-shm
+*.db-wal
+.env
+.env.local
+.DS_Store
+.playwright-mcp/
+
+# Base dos Correios (pesada, não versionar)
+eDNE_Basico_26051/
+eDNE_Delta_Basico_26042/
