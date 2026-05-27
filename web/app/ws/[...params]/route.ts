@@ -153,15 +153,19 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
   }
 
   const baiNus = [...new Set(logradouros.map(l => l.bai_nu_ini).filter(Boolean))];
-  const { data: bairros } = await supabase
-    .from('bairros')
-    .select('bai_nu, bai_no')
-    .in('bai_nu', baiNus);
+  const munNus = [...new Set(localidades.map(l => l.mun_nu).filter(Boolean))];
+
+  const [{ data: bairros }, { data: extras }] = await Promise.all([
+    supabase.from('bairros').select('bai_nu, bai_no').in('bai_nu', baiNus),
+    supabase.from('municipios_extra').select('codigo_ibge, siafi_id, ddd').in('codigo_ibge', munNus),
+  ]);
 
   const bairroMap = new Map((bairros || []).map(b => [b.bai_nu, b.bai_no]));
+  const extraMap = new Map((extras || []).map(e => [e.codigo_ibge, e]));
 
   const resultados = logradouros.map(l => {
     const loc = locMap.get(l.loc_nu);
+    const extra = extraMap.get(loc?.mun_nu) || { ddd: '', siafi_id: '' };
     const nome = l.log_sta_tlo === 'S' && l.tlo_tx
       ? `${l.tlo_tx} ${l.log_no}` : l.log_no;
 
@@ -174,7 +178,9 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
       localidade: loc?.loc_no || '',
       uf: l.ufe_sg || '',
       ibge: loc?.mun_nu || '',
-      gia: '', ddd: '', siafi: '',
+      gia: '',
+      ddd: extra.ddd || '',
+      siafi: extra.siafi_id || '',
     });
   });
 
