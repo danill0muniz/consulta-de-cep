@@ -55,9 +55,9 @@ export async function GET(request: NextRequest) {
 
   const hoje = periodos[0];
   const [topDominios, topCeps, topIps] = await Promise.all([
-    getTopEntries(`analytics:dominios:${hoje}`, 20),
-    getTopEntries(`analytics:ceps:${hoje}`, 20),
-    getTopEntries(`analytics:ips:${hoje}`, 20),
+    getTopEntries(`analytics:dominios:${hoje}`),
+    getTopEntries(`analytics:ceps:${hoje}`),
+    getTopEntries(`analytics:ips:${hoje}`),
   ]);
 
   const [topDominiosPeriodo, topCepsPeriodo] = await Promise.all([
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       return Object.entries(merged)
         .map(([nome, total]) => ({ nome, total }))
         .sort((a, b) => b.total - a.total)
-        .slice(0, 20);
+        .slice(0, 10);
     })(),
     (async () => {
       const merged: Record<string, number> = {};
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       return Object.entries(merged)
         .map(([nome, total]) => ({ nome, total }))
         .sort((a, b) => b.total - a.total)
-        .slice(0, 20);
+        .slice(0, 10);
     })(),
   ]);
 
