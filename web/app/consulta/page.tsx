@@ -101,23 +101,117 @@ function BuscaCep() {
   );
 }
 
+function useAutocomplete(tipo: string, uf: string, cidade?: string) {
+  const [query, setQuery] = useState("");
+  const [valor, setValor] = useState("");
+  const [sugestoes, setSugestoes] = useState<string[]>([]);
+  const [aberto, setAberto] = useState(false);
+  const timerRef = useState<ReturnType<typeof setTimeout> | null>(null);
+
+  function onChange(texto: string) {
+    setQuery(texto);
+    setValor(texto);
+
+    if (timerRef[0]) clearTimeout(timerRef[0]);
+
+    if (texto.length < 2 || !uf) {
+      setSugestoes([]);
+      setAberto(false);
+      return;
+    }
+
+    timerRef[0] = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams({ tipo, uf, q: texto });
+        if (cidade) params.set("cidade", cidade);
+        const res = await fetch(`/api/autocomplete?${params}`);
+        const data: string[] = await res.json();
+        setSugestoes(data);
+        setAberto(data.length > 0);
+      } catch {
+        setSugestoes([]);
+      }
+    }, 250);
+  }
+
+  function selecionar(item: string) {
+    setValor(item);
+    setQuery(item);
+    setSugestoes([]);
+    setAberto(false);
+  }
+
+  function fechar() {
+    setTimeout(() => setAberto(false), 150);
+  }
+
+  return { valor, query, sugestoes, aberto, onChange, selecionar, fechar, setValor };
+}
+
+function AutocompleteInput({
+  placeholder,
+  valor,
+  sugestoes,
+  aberto,
+  onChange,
+  onSelect,
+  onBlur,
+  onKeyDown,
+}: {
+  placeholder: string;
+  valor: string;
+  sugestoes: string[];
+  aberto: boolean;
+  onChange: (v: string) => void;
+  onSelect: (v: string) => void;
+  onBlur: () => void;
+  onKeyDown?: (e: React.KeyboardEvent) => void;
+}) {
+  return (
+    <div className="relative">
+      <input
+        placeholder={placeholder}
+        value={valor}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        className="w-full h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 transition-all"
+      />
+      {aberto && sugestoes.length > 0 && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-xl border border-white/[0.1] bg-[#1a1525] overflow-hidden shadow-xl">
+          {sugestoes.map((s) => (
+            <button
+              key={s}
+              onMouseDown={() => onSelect(s)}
+              className="w-full text-left px-4 py-2.5 text-sm text-white/70 hover:bg-violet-600/20 hover:text-white transition-colors cursor-pointer"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BuscaEndereco() {
   const [uf, setUf] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [rua, setRua] = useState("");
   const [resultados, setResultados] = useState<Endereco[]>([]);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
+  const cidadeAc = useAutocomplete("cidade", uf);
+  const ruaAc = useAutocomplete("rua", uf, cidadeAc.valor);
+
   async function buscar() {
     if (!uf) { setErro("Selecione o estado."); return; }
-    if (cidade.length < 3) { setErro("Cidade deve ter pelo menos 3 caracteres."); return; }
-    if (rua.length < 3) { setErro("Rua deve ter pelo menos 3 caracteres."); return; }
+    if (cidadeAc.valor.length < 3) { setErro("Cidade deve ter pelo menos 3 caracteres."); return; }
+    if (ruaAc.valor.length < 3) { setErro("Rua deve ter pelo menos 3 caracteres."); return; }
     setCarregando(true);
     setErro("");
     setResultados([]);
     try {
-      const res = await fetch(`/ws/${uf}/${encodeURIComponent(cidade)}/${encodeURIComponent(rua)}/json/`);
+      const res = await fetch(`/ws/${uf}/${encodeURIComponent(cidadeAc.valor)}/${encodeURIComponent(ruaAc.valor)}/json/`);
       const data = await res.json();
       if (Array.isArray(data) && data.length === 0) {
         setErro("Nenhum endereço encontrado.");
@@ -138,7 +232,7 @@ function BuscaEndereco() {
       <div className="grid sm:grid-cols-3 gap-3">
         <select
           value={uf}
-          onChange={(e) => setUf(e.target.value)}
+          onChange={(e) => { setUf(e.target.value); cidadeAc.setValor(""); ruaAc.setValor(""); }}
           className="h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-violet-500/50 transition-all appearance-none cursor-pointer"
         >
           <option value="" className="bg-[#0c0a14]">Estado (UF)</option>
@@ -146,18 +240,24 @@ function BuscaEndereco() {
             <option key={u} value={u} className="bg-[#0c0a14]">{u}</option>
           ))}
         </select>
-        <input
+        <AutocompleteInput
           placeholder="Cidade"
-          value={cidade}
-          onChange={(e) => setCidade(e.target.value)}
-          className="h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 transition-all"
+          valor={cidadeAc.valor}
+          sugestoes={cidadeAc.sugestoes}
+          aberto={cidadeAc.aberto}
+          onChange={cidadeAc.onChange}
+          onSelect={cidadeAc.selecionar}
+          onBlur={cidadeAc.fechar}
         />
-        <input
+        <AutocompleteInput
           placeholder="Rua / Logradouro"
-          value={rua}
-          onChange={(e) => setRua(e.target.value)}
+          valor={ruaAc.valor}
+          sugestoes={ruaAc.sugestoes}
+          aberto={ruaAc.aberto}
+          onChange={ruaAc.onChange}
+          onSelect={ruaAc.selecionar}
+          onBlur={ruaAc.fechar}
           onKeyDown={(e) => e.key === "Enter" && buscar()}
-          className="h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 transition-all"
         />
       </div>
       <button
