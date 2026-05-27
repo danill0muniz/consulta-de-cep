@@ -1,0 +1,53 @@
+# Consulta de CEP - API REST Gratuita
+
+> API gratuita para consulta de CEP brasileiro com base oficial dos Correios (eDNE).
+> Sem cadastro, sem API key, sem limites. CORS habilitado. HTTPS.
+
+## Endpoints
+
+### Consulta por CEP
+GET https://consultadecep.com/ws/{cep}/json/
+
+Exemplo: https://consultadecep.com/ws/01001000/json/
+
+Resposta:
+{
+  "cep": "01001-000",
+  "logradouro": "Praça da Sé",
+  "complemento": "- lado ímpar",
+  "unidade": "",
+  "bairro": "Sé",
+  "localidade": "São Paulo",
+  "uf": "SP",
+  "ibge": "3550308"
+}
+
+### Consulta por endereço
+GET https://consultadecep.com/ws/{uf}/{cidade}/{logradouro}/json/
+
+Exemplo: https://consultadecep.com/ws/SP/São Paulo/Paulista/json/
+
+Retorna array com até 50 resultados.
+
+## Dados
+- Base: eDNE (Correios)
+- Logradouros: 1,5M+
+- Bairros: 83 mil
+- Localidades: 11 mil
+- Estados: 27
+
+## Limites
+- 100 requisições por minuto por IP
+- Retorna 429 (Too Many Requests) ao exceder
+
+## Integrações com IA
+- MCP Server: npx @consultadecep/mcp-server
+- MCP remoto (Claude.ai): https://consultadecep.com/api/mcp
+- OpenAPI spec (ChatGPT): https://consultadecep.com/api/openapi
+
+## Links
+- Site: https://consultadecep.com
+- Documentação: https://consultadecep.com/#documentacao
+- MCP/IA: https://consultadecep.com/mcp
+- GitHub: https://github.com/danill0muniz/consulta-de-cep
+- npm: https://www.npmjs.com/package/@consultadecep/mcp-server
