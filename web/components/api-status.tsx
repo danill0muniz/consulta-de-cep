@@ -33,12 +33,7 @@ export function ApiStatus() {
         ? "bg-red-400"
         : "bg-white/20 animate-pulse";
 
-  const texto =
-    status === "operacional"
-      ? "API operacional"
-      : status === "fora"
-        ? "API fora do ar"
-        : "Verificando...";
+  const texto = "Status da API";
 
   const corTexto =
     status === "operacional"
