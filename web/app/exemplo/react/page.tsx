@@ -3,11 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://consultadecep.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_DISPLAY = "https://consultadecep.com";
 
 const CODIGO_FONTE = `import { useState } from "react";
 
 const API_URL = "${API_URL}";
+const API_DISPLAY = "https://consultadecep.com";
 
 function BuscaCep() {
   const [cep, setCep] = useState("");

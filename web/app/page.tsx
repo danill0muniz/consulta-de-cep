@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://consultadecep.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const API_DISPLAY = "https://consultadecep.com";
 
 interface CepResult {
   cep: string;
@@ -171,14 +172,14 @@ export default function Home() {
 
   const exemplos: Record<string, string> = {
     javascript: `// Consulta por CEP
-const response = await fetch("${API_URL}/ws/01001000/json/");
+const response = await fetch("${API_DISPLAY}/ws/01001000/json/");
 const data = await response.json();
 
 console.log(data.logradouro); // "Praça da Sé"
 console.log(data.localidade); // "São Paulo"
 
 // Consulta por endereço
-const busca = await fetch("${API_URL}/ws/SP/São Paulo/Paulista/json/");
+const busca = await fetch("${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/");
 const resultados = await busca.json();
 
 resultados.forEach(endereco => {
@@ -187,26 +188,26 @@ resultados.forEach(endereco => {
     python: `import requests
 
 # Consulta por CEP
-response = requests.get("${API_URL}/ws/01001000/json/")
+response = requests.get("${API_DISPLAY}/ws/01001000/json/")
 data = response.json()
 
 print(data["logradouro"])  # "Praça da Sé"
 print(data["localidade"])  # "São Paulo"
 
 # Consulta por endereço
-busca = requests.get("${API_URL}/ws/SP/São Paulo/Paulista/json/")
+busca = requests.get("${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/")
 for endereco in busca.json():
     print(f"{endereco['cep']} - {endereco['logradouro']}")`,
     php: `<?php
 // Consulta por CEP
-$json = file_get_contents("${API_URL}/ws/01001000/json/");
+$json = file_get_contents("${API_DISPLAY}/ws/01001000/json/");
 $data = json_decode($json);
 
 echo $data->logradouro; // "Praça da Sé"
 echo $data->localidade; // "São Paulo"
 
 // Consulta por endereço
-$busca = file_get_contents("${API_URL}/ws/SP/São Paulo/Paulista/json/");
+$busca = file_get_contents("${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/");
 $resultados = json_decode($busca);
 
 foreach ($resultados as $endereco) {
@@ -214,10 +215,10 @@ foreach ($resultados as $endereco) {
 }
 ?>`,
     curl: `# Consulta por CEP
-curl ${API_URL}/ws/01001000/json/
+curl ${API_DISPLAY}/ws/01001000/json/
 
 # Consulta por endereço
-curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
+curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
   };
 
   return (
@@ -275,7 +276,7 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
             </p>
 
             <div className="mt-10 max-w-xl">
-              <CodeBlock>{`curl ${API_URL}/ws/01001000/json/`}</CodeBlock>
+              <CodeBlock>{`curl ${API_DISPLAY}/ws/01001000/json/`}</CodeBlock>
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -342,12 +343,12 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
                 <p>
                   Exemplo de consulta:{" "}
                   <a
-                    href={`${API_URL}/ws/01001000/json/`}
+                    href={`${API_DISPLAY}/ws/01001000/json/`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors font-mono text-xs"
                   >
-                    {API_URL}/ws/01001000/json/
+                    {API_DISPLAY}/ws/01001000/json/
                   </a>
                 </p>
               </div>
@@ -384,7 +385,7 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
                     GET
                   </span>
                   <a
-                    href={`${API_URL}/ws/01001000/json/`}
+                    href={`${API_DISPLAY}/ws/01001000/json/`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-mono text-sm text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
@@ -434,9 +435,9 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
 
               <div className="mt-4 space-y-2">
                 {[
-                  { url: `${API_URL}/ws/RS/Porto Alegre/Domingos/json/`, label: "Busca por \"Domingos\" em Porto Alegre/RS" },
-                  { url: `${API_URL}/ws/SP/São Paulo/Paulista/json/`, label: "Busca por \"Paulista\" em São Paulo/SP" },
-                  { url: `${API_URL}/ws/SP/Ribeirão Preto/Nove de Julho/json/`, label: "Busca por \"Nove de Julho\" em Ribeirão Preto/SP" },
+                  { url: `${API_DISPLAY}/ws/RS/Porto Alegre/Domingos/json/`, label: "Busca por \"Domingos\" em Porto Alegre/RS" },
+                  { url: `${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/`, label: "Busca por \"Paulista\" em São Paulo/SP" },
+                  { url: `${API_DISPLAY}/ws/SP/Ribeirão Preto/Nove de Julho/json/`, label: "Busca por \"Nove de Julho\" em Ribeirão Preto/SP" },
                 ].map((ex) => (
                   <div key={ex.url} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                     <a
