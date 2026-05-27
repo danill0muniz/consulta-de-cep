@@ -11,11 +11,11 @@ export async function GET() {
     status[meta.chave] = meta.valor;
   }
 
-  const { count: totalLogradouros, error: errLog } = await supabase
+  const { count: totalLogradouros } = await supabase
     .from('logradouros')
     .select('*', { count: 'exact', head: true });
 
-  const { count: totalLocalidades, error: errLoc } = await supabase
+  const { count: totalLocalidades } = await supabase
     .from('localidades')
     .select('*', { count: 'exact', head: true });
 
@@ -28,15 +28,6 @@ export async function GET() {
     data_importacao: status.data_importacao || '',
     total_logradouros: totalLogradouros || 0,
     total_localidades: totalLocalidades || 0,
-    debug_env: {
-      has_url: !!process.env.SUPABASE_URL,
-      has_key: !!process.env.SUPABASE_SERVICE_KEY,
-      url_preview: process.env.SUPABASE_URL?.slice(0, 20) || 'MISSING',
-    },
-    debug_errors: {
-      logradouros: errLog?.message || null,
-      localidades: errLoc?.message || null,
-    },
   }, {
     headers: {
       'Access-Control-Allow-Origin': '*',
