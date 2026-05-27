@@ -486,6 +486,29 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
                 </div>
               </div>
             </div>
+
+            {/* Limites de uso */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Limites de uso</h3>
+              <div className="text-sm text-white/50 space-y-3 max-w-3xl leading-relaxed">
+                <p>
+                  A API é <strong className="text-white/70">gratuita e sem cadastro</strong>, mas para garantir a
+                  disponibilidade do serviço para todos, aplicamos um limite de{" "}
+                  <strong className="text-white/70">100 requisições por minuto por IP</strong>.
+                </p>
+                <p>
+                  Ao exceder o limite, a API retornará o código <strong className="text-white/70">429</strong>{" "}
+                  (Too Many Requests) com o header <code className="bg-white/[0.06] text-violet-300 px-1.5 py-0.5 rounded">Retry-After</code>{" "}
+                  indicando quantos segundos aguardar antes de tentar novamente.
+                </p>
+                <p>
+                  Cada resposta inclui os headers <code className="bg-white/[0.06] text-violet-300 px-1.5 py-0.5 rounded">X-RateLimit-Limit</code>,{" "}
+                  <code className="bg-white/[0.06] text-violet-300 px-1.5 py-0.5 rounded">X-RateLimit-Remaining</code> e{" "}
+                  <code className="bg-white/[0.06] text-violet-300 px-1.5 py-0.5 rounded">X-RateLimit-Reset</code>{" "}
+                  para que você possa monitorar seu consumo.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
