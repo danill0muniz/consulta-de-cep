@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-const CACHE_CEP = 'public, s-maxage=86400, stale-while-revalidate=604800';
-const CACHE_ENDERECO = 'public, s-maxage=3600, stale-while-revalidate=86400';
+const CACHE_CEP = 'public, s-maxage=2592000, stale-while-revalidate=15552000';
+const CACHE_ENDERECO = 'public, s-maxage=2592000, stale-while-revalidate=15552000';
 
 function makeHeaders(cache: string) {
   return {
