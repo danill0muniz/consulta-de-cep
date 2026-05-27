@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://consultadecep.com";
 
@@ -88,7 +89,7 @@ function CepTester() {
           value={cep}
           onChange={(e) => setCep(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && consultar()}
-          className="font-mono w-[200px] h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all"
+          className="font-mono w-full sm:w-[200px] h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all"
           maxLength={9}
         />
         <button
@@ -107,6 +108,58 @@ function CepTester() {
       {resultado && (
         <div className="mt-2">
           <CodeBlock>{JSON.stringify(resultado, null, 2)}</CodeBlock>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MobileMenu() {
+  const [aberto, setAberto] = useState(false);
+
+  const links = [
+    { href: "#documentacao", label: "Documentação" },
+    { href: "#exemplos", label: "Exemplos" },
+    { href: "#testar", label: "Testar" },
+  ];
+
+  return (
+    <div className="sm:hidden">
+      <button
+        onClick={() => setAberto(!aberto)}
+        className="fixed top-3 right-4 z-[60] flex flex-col justify-center items-center size-10 gap-[5px] cursor-pointer"
+        aria-label="Menu"
+      >
+        <span
+          className={`block h-[2px] w-5 rounded-full transition-all duration-300 ${
+            aberto ? "rotate-45 translate-y-[7px] bg-white" : "bg-white/70"
+          }`}
+        />
+        <span
+          className={`block h-[2px] w-5 bg-white/70 rounded-full transition-all duration-300 ${
+            aberto ? "opacity-0 scale-0" : ""
+          }`}
+        />
+        <span
+          className={`block h-[2px] w-5 rounded-full transition-all duration-300 ${
+            aberto ? "-rotate-45 -translate-y-[7px] bg-white" : "bg-white/70"
+          }`}
+        />
+      </button>
+
+      {/* Overlay */}
+      {aberto && (
+        <div className="fixed inset-0 z-[55] flex flex-col items-center justify-center gap-10 bg-[#0c0a14]">
+          {links.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={() => setAberto(false)}
+              className="text-3xl font-bold text-white/80 hover:text-white animate-[fadeInUp_0.3s_ease-out_forwards]"
+            >
+              {link.label}
+            </a>
+          ))}
         </div>
       )}
     </div>
@@ -193,6 +246,7 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
           </nav>
         </div>
       </header>
+      <MobileMenu />
 
       {/* Hero */}
       <section className="relative overflow-hidden">
@@ -208,7 +262,7 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
               </span>
             </div>
 
-            <h1 className="text-5xl sm:text-7xl font-extrabold tracking-tight leading-[1.05]">
+            <h1 className="text-4xl sm:text-7xl font-extrabold tracking-tight leading-[1.05]">
               Consulte qualquer{" "}
               <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
                 CEP do Brasil
@@ -361,7 +415,7 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
           </div>
 
           <div>
-            <div className="flex gap-1 mb-6">
+            <div className="flex gap-1 mb-6 overflow-x-auto pb-1">
               {["javascript", "python", "php", "curl"].map((tab) => (
                 <button
                   key={tab}
@@ -399,6 +453,56 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
               Digite um CEP e veja o resultado em tempo real.
             </p>
             <CepTester />
+          </div>
+        </div>
+      </section>
+
+      {/* Exemplos interativos */}
+      <section className="py-24 border-t border-white/[0.06]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+              Exemplos interativos
+            </h2>
+            <p className="mt-3 text-white/40 text-lg">
+              Auto preenchimento de endereço via CEP com código fonte completo.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-5">
+            {[
+              {
+                href: "/exemplo/javascript",
+                titulo: "JavaScript",
+                descricao: "Fetch API puro, sem dependências.",
+              },
+              {
+                href: "/exemplo/jquery",
+                titulo: "jQuery",
+                descricao: "Usando $.getJSON para consulta rápida.",
+              },
+              {
+                href: "/exemplo/react",
+                titulo: "React",
+                descricao: "Componente com hooks (useState + fetch).",
+              },
+            ].map((ex) => (
+              <Link
+                key={ex.href}
+                href={ex.href}
+                className="group rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 hover:border-violet-500/30 hover:bg-violet-500/[0.04] transition-all"
+              >
+                <h3 className="font-semibold text-white mb-1 group-hover:text-violet-300 transition-colors">
+                  {ex.titulo}
+                </h3>
+                <p className="text-sm text-white/40">
+                  {ex.descricao}
+                </p>
+                <span className="inline-block mt-4 text-xs font-medium text-violet-400/70 group-hover:text-violet-400 transition-colors">
+                  Ver exemplo →
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       </section>
@@ -448,18 +552,34 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
 
       {/* Footer */}
       <footer className="border-t border-white/[0.06] py-10 mt-auto">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="size-6 rounded-md bg-violet-600 flex items-center justify-center font-mono">
-              <span className="text-white text-[9px] font-bold">&lt;/&gt;</span>
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2.5">
+              <div className="size-6 rounded-md bg-violet-600 flex items-center justify-center font-mono">
+                <span className="text-white text-[9px] font-bold">&lt;/&gt;</span>
+              </div>
+              <span className="text-sm font-medium text-white/70">
+                Consulta de CEP
+              </span>
             </div>
-            <span className="text-sm font-medium text-white/70">
-              Consulta de CEP
-            </span>
+            <p className="text-xs text-white/30">
+              Base de dados: Correios (eDNE) — consultadecep.com
+            </p>
           </div>
-          <p className="text-xs text-white/30">
-            Base de dados: Correios (eDNE) — consultadecep.com
-          </p>
+          <div className="mt-6 pt-6 border-t border-white/[0.06] text-center">
+            <p className="text-xs text-white/25 leading-relaxed">
+              Inspirado no{" "}
+              <a
+                href="https://viacep.com.br"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-violet-400/60 hover:text-violet-400 transition-colors underline underline-offset-2"
+              >
+                ViaCEP
+              </a>
+              {" "}— o pioneiro em API gratuita de consulta de CEP no Brasil.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
