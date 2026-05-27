@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-const headers = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET',
-  'Cache-Control': 'public, max-age=3600',
-};
+const CACHE_CEP = 'public, s-maxage=86400, stale-while-revalidate=604800';
+const CACHE_ENDERECO = 'public, s-maxage=3600, stale-while-revalidate=86400';
+
+function makeHeaders(cache: string) {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET',
+    'Cache-Control': cache,
+    'CDN-Cache-Control': cache,
+    'Vercel-CDN-Cache-Control': cache,
+  };
+}
 
 const UFS_VALIDAS = [
   'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA',
@@ -22,8 +29,6 @@ export async function GET(
   const ultimo = segmentos[segmentos.length - 1];
   const isJson = ultimo === 'json' || ultimo === 'json/';
 
-  // /ws/{cep}/json → segmentos = [cep, "json"]
-  // /ws/{uf}/{cidade}/{logradouro}/json → segmentos = [uf, cidade, logradouro, "json"]
   if (segmentos.length === 2 && isJson) {
     return buscarPorCep(segmentos[0]);
   }
@@ -34,125 +39,128 @@ export async function GET(
 
   return NextResponse.json(
     { erro: true, mensagem: 'Rota inválida.' },
-    { status: 400, headers }
+    { status: 400, headers: makeHeaders('no-store') }
   );
 }
 
 async function buscarPorCep(cepParam: string) {
   const cep = cepParam.replace(/\D/g, '').padStart(8, '0');
+  const h = makeHeaders(CACHE_CEP);
 
   if (cep.length !== 8) {
     return NextResponse.json(
       { erro: true, mensagem: 'CEP inválido. Informe 8 dígitos.' },
-      { status: 400, headers }
+      { status: 400, headers: h }
     );
   }
 
-  // Buscar em logradouros
-  const { data: logradouro } = await supabase
-    .from('logradouros')
-    .select('cep, log_no, log_complemento, tlo_tx, log_sta_tlo, ufe_sg, loc_nu, bai_nu_ini')
-    .eq('cep', cep)
-    .limit(1)
-    .single();
+  // Buscar logradouros, grandes usuários e UOPs em paralelo
+  const [logRes, guRes, uopRes, locRes] = await Promise.all([
+    supabase
+      .from('logradouros')
+      .select('cep, log_no, log_complemento, tlo_tx, log_sta_tlo, ufe_sg, loc_nu, bai_nu_ini')
+      .eq('cep', cep)
+      .limit(1)
+      .single(),
+    supabase
+      .from('grandes_usuarios')
+      .select('cep, gru_no, gru_endereco, ufe_sg, loc_nu, bai_nu')
+      .eq('cep', cep)
+      .limit(1)
+      .single(),
+    supabase
+      .from('unidades_operacionais')
+      .select('cep, uop_no, uop_endereco, ufe_sg, loc_nu, bai_nu')
+      .eq('cep', cep)
+      .limit(1)
+      .single(),
+    supabase
+      .from('localidades')
+      .select('loc_no, ufe_sg, mun_nu')
+      .eq('cep', cep)
+      .limit(1)
+      .single(),
+  ]);
 
-  if (logradouro) {
+  // Logradouro (caso mais comum)
+  if (logRes.data) {
+    const l = logRes.data;
     const [bairro, localidade] = await Promise.all([
-      supabase.from('bairros').select('bai_no').eq('bai_nu', logradouro.bai_nu_ini).limit(1).single(),
-      supabase.from('localidades').select('loc_no, mun_nu').eq('loc_nu', logradouro.loc_nu).limit(1).single(),
+      supabase.from('bairros').select('bai_no').eq('bai_nu', l.bai_nu_ini).limit(1).single(),
+      supabase.from('localidades').select('loc_no, mun_nu').eq('loc_nu', l.loc_nu).limit(1).single(),
     ]);
 
-    const nome = logradouro.log_sta_tlo === 'S' && logradouro.tlo_tx
-      ? `${logradouro.tlo_tx} ${logradouro.log_no}`
-      : logradouro.log_no;
+    const nome = l.log_sta_tlo === 'S' && l.tlo_tx
+      ? `${l.tlo_tx} ${l.log_no}` : l.log_no;
 
     return NextResponse.json({
       cep: formatarCep(cep),
       logradouro: nome || '',
-      complemento: logradouro.log_complemento || '',
+      complemento: l.log_complemento || '',
       unidade: '',
       bairro: bairro.data?.bai_no || '',
       localidade: localidade.data?.loc_no || '',
-      uf: logradouro.ufe_sg || '',
+      uf: l.ufe_sg || '',
       ibge: localidade.data?.mun_nu || '',
       gia: '', ddd: '', siafi: '',
-    }, { headers });
+    }, { headers: h });
   }
 
-  // Buscar em grandes usuários
-  const { data: gu } = await supabase
-    .from('grandes_usuarios')
-    .select('cep, gru_no, gru_endereco, ufe_sg, loc_nu, bai_nu')
-    .eq('cep', cep)
-    .limit(1)
-    .single();
-
-  if (gu) {
+  // Grande usuário
+  if (guRes.data) {
+    const g = guRes.data;
     const [bairro, localidade] = await Promise.all([
-      supabase.from('bairros').select('bai_no').eq('bai_nu', gu.bai_nu).limit(1).single(),
-      supabase.from('localidades').select('loc_no, mun_nu').eq('loc_nu', gu.loc_nu).limit(1).single(),
+      supabase.from('bairros').select('bai_no').eq('bai_nu', g.bai_nu).limit(1).single(),
+      supabase.from('localidades').select('loc_no, mun_nu').eq('loc_nu', g.loc_nu).limit(1).single(),
     ]);
 
     return NextResponse.json({
       cep: formatarCep(cep),
-      logradouro: gu.gru_no || '',
-      complemento: gu.gru_endereco || '',
+      logradouro: g.gru_no || '',
+      complemento: g.gru_endereco || '',
       unidade: '',
       bairro: bairro.data?.bai_no || '',
       localidade: localidade.data?.loc_no || '',
-      uf: gu.ufe_sg || '',
+      uf: g.ufe_sg || '',
       ibge: localidade.data?.mun_nu || '',
       gia: '', ddd: '', siafi: '',
-    }, { headers });
+    }, { headers: h });
   }
 
-  // Buscar em unidades operacionais
-  const { data: uop } = await supabase
-    .from('unidades_operacionais')
-    .select('cep, uop_no, uop_endereco, ufe_sg, loc_nu, bai_nu')
-    .eq('cep', cep)
-    .limit(1)
-    .single();
-
-  if (uop) {
+  // Unidade operacional
+  if (uopRes.data) {
+    const u = uopRes.data;
     const [bairro, localidade] = await Promise.all([
-      supabase.from('bairros').select('bai_no').eq('bai_nu', uop.bai_nu).limit(1).single(),
-      supabase.from('localidades').select('loc_no, mun_nu').eq('loc_nu', uop.loc_nu).limit(1).single(),
+      supabase.from('bairros').select('bai_no').eq('bai_nu', u.bai_nu).limit(1).single(),
+      supabase.from('localidades').select('loc_no, mun_nu').eq('loc_nu', u.loc_nu).limit(1).single(),
     ]);
 
     return NextResponse.json({
       cep: formatarCep(cep),
-      logradouro: uop.uop_no || '',
-      complemento: uop.uop_endereco || '',
+      logradouro: u.uop_no || '',
+      complemento: u.uop_endereco || '',
       unidade: '',
       bairro: bairro.data?.bai_no || '',
       localidade: localidade.data?.loc_no || '',
-      uf: uop.ufe_sg || '',
+      uf: u.ufe_sg || '',
       ibge: localidade.data?.mun_nu || '',
       gia: '', ddd: '', siafi: '',
-    }, { headers });
+    }, { headers: h });
   }
 
-  // Buscar localidade com CEP direto
-  const { data: loc } = await supabase
-    .from('localidades')
-    .select('loc_no, ufe_sg, mun_nu')
-    .eq('cep', cep)
-    .limit(1)
-    .single();
-
-  if (loc) {
+  // Localidade com CEP direto
+  if (locRes.data) {
     return NextResponse.json({
       cep: formatarCep(cep),
       logradouro: '', complemento: '', unidade: '', bairro: '',
-      localidade: loc.loc_no || '',
-      uf: loc.ufe_sg || '',
-      ibge: loc.mun_nu || '',
+      localidade: locRes.data.loc_no || '',
+      uf: locRes.data.ufe_sg || '',
+      ibge: locRes.data.mun_nu || '',
       gia: '', ddd: '', siafi: '',
-    }, { headers });
+    }, { headers: h });
   }
 
-  // Buscar por faixa de localidade
+  // Faixa de localidade (fallback)
   const { data: faixa } = await supabase
     .from('faixa_localidade')
     .select('loc_nu')
@@ -177,11 +185,11 @@ async function buscarPorCep(cepParam: string) {
         uf: locFaixa.ufe_sg || '',
         ibge: locFaixa.mun_nu || '',
         gia: '', ddd: '', siafi: '',
-      }, { headers });
+      }, { headers: h });
     }
   }
 
-  return NextResponse.json({ erro: true }, { headers });
+  return NextResponse.json({ erro: true }, { headers: h });
 }
 
 const PREFIXOS_LOGRADOURO = /^(rua|avenida|av\.?|alameda|al\.?|travessa|tv\.?|praça|pc\.?|pç\.?|rodovia|rod\.?|estrada|est\.?|largo|viela|beco|passagem|servidão|via)\s+/i;
@@ -190,15 +198,16 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
   const ufUpper = uf.toUpperCase();
   const cidadeDecoded = decodeURIComponent(cidade);
   const logradouroDecoded = decodeURIComponent(logradouro).replace(PREFIXOS_LOGRADOURO, '');
+  const h = makeHeaders(CACHE_ENDERECO);
 
   if (!UFS_VALIDAS.includes(ufUpper)) {
-    return NextResponse.json({ erro: true, mensagem: 'UF inválida.' }, { status: 400, headers });
+    return NextResponse.json({ erro: true, mensagem: 'UF inválida.' }, { status: 400, headers: h });
   }
   if (cidadeDecoded.length < 3) {
-    return NextResponse.json({ erro: true, mensagem: 'Cidade deve ter pelo menos 3 caracteres.' }, { status: 400, headers });
+    return NextResponse.json({ erro: true, mensagem: 'Cidade deve ter pelo menos 3 caracteres.' }, { status: 400, headers: h });
   }
   if (logradouroDecoded.length < 3) {
-    return NextResponse.json({ erro: true, mensagem: 'Logradouro deve ter pelo menos 3 caracteres.' }, { status: 400, headers });
+    return NextResponse.json({ erro: true, mensagem: 'Logradouro deve ter pelo menos 3 caracteres.' }, { status: 400, headers: h });
   }
 
   const { data: localidades } = await supabase
@@ -208,7 +217,7 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
     .ilike('loc_no', `%${cidadeDecoded}%`);
 
   if (!localidades || localidades.length === 0) {
-    return NextResponse.json([], { headers });
+    return NextResponse.json([], { headers: h });
   }
 
   const locNus = localidades.map(l => l.loc_nu);
@@ -224,7 +233,7 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
     .limit(50);
 
   if (!logradouros || logradouros.length === 0) {
-    return NextResponse.json([], { headers });
+    return NextResponse.json([], { headers: h });
   }
 
   const baiNus = [...new Set(logradouros.map(l => l.bai_nu_ini).filter(Boolean))];
@@ -253,7 +262,7 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
     };
   });
 
-  return NextResponse.json(resultados, { headers });
+  return NextResponse.json(resultados, { headers: h });
 }
 
 function formatarCep(cep: string): string {
