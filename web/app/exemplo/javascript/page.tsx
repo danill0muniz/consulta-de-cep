@@ -162,12 +162,14 @@ function DemoForm() {
         <label className="text-sm text-white/50 block mb-1">CEP:</label>
         <input
           type="text"
+          inputMode="numeric"
+          pattern="[0-9\-]*"
           value={cep}
           onChange={(e) => setCep(e.target.value)}
           onBlur={buscar}
           maxLength={9}
           placeholder="00000-000"
-          className="w-full h-10 px-3 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white placeholder:text-white/20 text-sm font-mono focus:outline-none focus:border-violet-500/50"
+          className="w-full h-10 px-3 bg-white/[0.06] border border-white/[0.1] rounded-lg text-white placeholder:text-white/20 text-[16px] font-mono focus:outline-none focus:border-violet-500/50"
         />
       </div>
       {[

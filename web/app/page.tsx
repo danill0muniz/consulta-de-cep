@@ -90,6 +90,8 @@ function CepTester() {
           value={cep}
           onChange={(e) => setCep(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && consultar()}
+          inputMode="numeric"
+          pattern="[0-9\-]*"
           className="font-mono w-full sm:w-[200px] h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all"
           maxLength={9}
         />
