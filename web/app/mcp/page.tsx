@@ -141,6 +141,18 @@ export default function McpPage() {
         <section className="mb-16">
           <h2 className="text-2xl font-bold mb-6">Instalação</h2>
 
+          {/* Claude.ai (chat) */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold mb-3">Claude.ai (chat web)</h3>
+            <p className="text-sm text-white/50 mb-4">
+              No Claude.ai, vá em <strong className="text-white/70">Settings → Integrations → Add More</strong> e adicione a URL:
+            </p>
+            <CodeBlock compact>{`https://consultadecep.com/api/mcp`}</CodeBlock>
+            <p className="text-xs text-white/30 mt-2">
+              Funciona direto no navegador — sem instalar nada. Basta adicionar e começar a usar.
+            </p>
+          </div>
+
           {/* Claude Code / Claude Desktop */}
           <div className="mb-8">
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
