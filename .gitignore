@@ -12,3 +12,11 @@ dist/
 # Base dos Correios (pesada, não versionar)
 eDNE_Basico_26051/
 eDNE_Delta_Basico_26042/
+
+# Scripts de importação (utilitários locais)
+import-supabase*.ts
+/package.json
+/package-lock.json
+
+# Supabase CLI (config local)
+web/supabase/.temp/
