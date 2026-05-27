@@ -683,7 +683,7 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
               Base de dados: Correios (eDNE) — consultadecep.com
             </p>
           </div>
-          <div className="mt-6 pt-6 border-t border-white/[0.06] text-center">
+          <div className="mt-6 pt-6 border-t border-white/[0.06] text-center space-y-2">
             <p className="text-xs text-white/25 leading-relaxed">
               Inspirado no{" "}
               <a
@@ -695,6 +695,11 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
                 ViaCEP
               </a>
               {" "}— o pioneiro em API gratuita de consulta de CEP no Brasil.
+            </p>
+            <p className="text-xs text-white/20">
+              <Link href="/privacidade" className="hover:text-white/40 transition-colors underline underline-offset-2">
+                Política de Privacidade
+              </Link>
             </p>
           </div>
         </div>
