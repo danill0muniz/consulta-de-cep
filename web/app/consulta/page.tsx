@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 
 interface Endereco {
@@ -13,11 +13,6 @@ interface Endereco {
   ibge: string;
   erro?: boolean;
 }
-
-const UFS = [
-  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
-  "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
-];
 
 function ResultadoCep({ endereco }: { endereco: Endereco }) {
   return (
@@ -44,177 +39,113 @@ function ResultadoCep({ endereco }: { endereco: Endereco }) {
   );
 }
 
-function BuscaCep() {
-  const [cep, setCep] = useState("");
-  const [resultado, setResultado] = useState<Endereco | null>(null);
-  const [erro, setErro] = useState("");
-  const [carregando, setCarregando] = useState(false);
-
-  async function buscar() {
-    const limpo = cep.replace(/\D/g, "");
-    if (limpo.length !== 8) {
-      setErro("Informe um CEP com 8 dígitos.");
-      return;
-    }
-    setCarregando(true);
-    setErro("");
-    setResultado(null);
-    try {
-      const res = await fetch(`/ws/${limpo}/json/`);
-      const data = await res.json();
-      if (data.erro) {
-        setErro("CEP não encontrado.");
-      } else {
-        setResultado(data);
-      }
-    } catch {
-      setErro("Erro ao consultar. Tente novamente.");
-    } finally {
-      setCarregando(false);
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex gap-3">
-        <input
-          placeholder="Digite o CEP (ex: 01001-000)"
-          value={cep}
-          onChange={(e) => setCep(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && buscar()}
-          inputMode="numeric"
-          pattern="[0-9\-]*"
-          className="flex-1 h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all font-mono"
-          maxLength={9}
-        />
-        <button
-          onClick={buscar}
-          disabled={carregando}
-          className="h-12 px-6 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-medium rounded-xl transition-colors cursor-pointer whitespace-nowrap"
-        >
-          {carregando ? "Buscando..." : "Consultar"}
-        </button>
-      </div>
-      {erro && <p className="text-sm text-red-400">{erro}</p>}
-      {resultado && <ResultadoCep endereco={resultado} />}
-    </div>
-  );
+function isCep(texto: string): boolean {
+  return /^\d{5}-?\d{0,3}$/.test(texto.trim()) && texto.replace(/\D/g, "").length >= 5;
 }
 
-function useAutocomplete(tipo: string, uf: string, cidade?: string) {
+function BuscaUnificada() {
   const [query, setQuery] = useState("");
-  const [valor, setValor] = useState("");
-  const [sugestoes, setSugestoes] = useState<string[]>([]);
-  const [aberto, setAberto] = useState(false);
-  const timerRef = useState<ReturnType<typeof setTimeout> | null>(null);
-
-  function onChange(texto: string) {
-    setQuery(texto);
-    setValor(texto);
-
-    if (timerRef[0]) clearTimeout(timerRef[0]);
-
-    if (texto.length < 2 || !uf) {
-      setSugestoes([]);
-      setAberto(false);
-      return;
-    }
-
-    timerRef[0] = setTimeout(async () => {
-      try {
-        const params = new URLSearchParams({ tipo, uf, q: texto });
-        if (cidade) params.set("cidade", cidade);
-        const res = await fetch(`/api/autocomplete?${params}`);
-        const data: string[] = await res.json();
-        setSugestoes(data);
-        setAberto(data.length > 0);
-      } catch {
-        setSugestoes([]);
-      }
-    }, 250);
-  }
-
-  function selecionar(item: string) {
-    setValor(item);
-    setQuery(item);
-    setSugestoes([]);
-    setAberto(false);
-  }
-
-  function fechar() {
-    setTimeout(() => setAberto(false), 150);
-  }
-
-  return { valor, query, sugestoes, aberto, onChange, selecionar, fechar, setValor };
-}
-
-function AutocompleteInput({
-  placeholder,
-  valor,
-  sugestoes,
-  aberto,
-  onChange,
-  onSelect,
-  onBlur,
-  onKeyDown,
-}: {
-  placeholder: string;
-  valor: string;
-  sugestoes: string[];
-  aberto: boolean;
-  onChange: (v: string) => void;
-  onSelect: (v: string) => void;
-  onBlur: () => void;
-  onKeyDown?: (e: React.KeyboardEvent) => void;
-}) {
-  return (
-    <div className="relative">
-      <input
-        placeholder={placeholder}
-        value={valor}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        onKeyDown={onKeyDown}
-        className="w-full h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 transition-all"
-      />
-      {aberto && sugestoes.length > 0 && (
-        <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-xl border border-white/[0.1] bg-[#1a1525] overflow-hidden shadow-xl">
-          {sugestoes.map((s) => (
-            <button
-              key={s}
-              onMouseDown={() => onSelect(s)}
-              className="w-full text-left px-4 py-2.5 text-sm text-white/70 hover:bg-violet-600/20 hover:text-white transition-colors cursor-pointer"
-            >
-              {s}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function BuscaEndereco() {
-  const [uf, setUf] = useState("");
   const [resultados, setResultados] = useState<Endereco[]>([]);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const [dica, setDica] = useState("");
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const cidadeAc = useAutocomplete("cidade", uf);
-  const ruaAc = useAutocomplete("rua", uf, cidadeAc.valor);
+  const buscar = useCallback(async (texto?: string) => {
+    const q = (texto ?? query).trim();
+    if (!q) return;
 
-  async function buscar() {
-    if (!uf) { setErro("Selecione o estado."); return; }
-    if (cidadeAc.valor.length < 3) { setErro("Cidade deve ter pelo menos 3 caracteres."); return; }
-    if (ruaAc.valor.length < 3) { setErro("Rua deve ter pelo menos 3 caracteres."); return; }
     setCarregando(true);
     setErro("");
     setResultados([]);
+    setDica("");
+
+    const limpo = q.replace(/\D/g, "");
+
     try {
-      const res = await fetch(`/ws/${uf}/${encodeURIComponent(cidadeAc.valor)}/${encodeURIComponent(ruaAc.valor)}/json/`);
+      // Se parece CEP (só números, 8 dígitos)
+      if (/^\d{5,8}$/.test(limpo) && limpo.length === 8) {
+        const res = await fetch(`/ws/${limpo}/json/`);
+        const data = await res.json();
+        if (data.erro) {
+          setErro("CEP não encontrado.");
+        } else {
+          setResultados([data]);
+        }
+        return;
+      }
+
+      // Se parece CEP com hífen
+      if (/^\d{5}-\d{3}$/.test(q.trim())) {
+        const cep = q.replace(/\D/g, "");
+        const res = await fetch(`/ws/${cep}/json/`);
+        const data = await res.json();
+        if (data.erro) {
+          setErro("CEP não encontrado.");
+        } else {
+          setResultados([data]);
+        }
+        return;
+      }
+
+      // Busca por endereço — tentar extrair UF, cidade e logradouro
+      const partes = q.split(/[,\s]+/).filter(Boolean);
+
+      // Tentar encontrar UF nas partes
+      const UFS = ["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"];
+      let uf = "";
+      let restante = [...partes];
+
+      for (let i = partes.length - 1; i >= 0; i--) {
+        if (UFS.includes(partes[i].toUpperCase())) {
+          uf = partes[i].toUpperCase();
+          restante.splice(i, 1);
+          break;
+        }
+      }
+
+      if (!uf || restante.length < 2) {
+        setErro("Para buscar por endereço, informe a rua, cidade e estado.");
+        setDica("Exemplos: \"Paulista, São Paulo, SP\" ou \"Diana Perdizes SP\"");
+        return;
+      }
+
+      // Última palavra(s) = logradouro, penúltima(s) = cidade
+      // Heurística: se tem vírgula, separar por vírgula
+      const comVirgula = q.replace(new RegExp(`\\b${uf}\\b`, "i"), "").split(",").map(s => s.trim()).filter(Boolean);
+
+      let cidade = "";
+      let logradouro = "";
+
+      if (comVirgula.length >= 2) {
+        logradouro = comVirgula[0];
+        cidade = comVirgula[1];
+      } else {
+        // Sem vírgula: primeira palavra = logradouro, última = cidade (ou vice-versa)
+        // Tentar buscar as últimas palavras como cidade
+        logradouro = restante.slice(0, Math.ceil(restante.length / 2)).join(" ");
+        cidade = restante.slice(Math.ceil(restante.length / 2)).join(" ");
+      }
+
+      if (cidade.length < 3 || logradouro.length < 3) {
+        setErro("Cidade e logradouro devem ter pelo menos 3 caracteres.");
+        setDica("Exemplos: \"Paulista, São Paulo, SP\" ou \"Nove de Julho, Ribeirão Preto, SP\"");
+        return;
+      }
+
+      const res = await fetch(`/ws/${uf}/${encodeURIComponent(cidade)}/${encodeURIComponent(logradouro)}/json/`);
       const data = await res.json();
+
       if (Array.isArray(data) && data.length === 0) {
-        setErro("Nenhum endereço encontrado.");
+        // Tentar invertendo cidade e logradouro
+        const res2 = await fetch(`/ws/${uf}/${encodeURIComponent(logradouro)}/${encodeURIComponent(cidade)}/json/`);
+        const data2 = await res2.json();
+        if (Array.isArray(data2) && data2.length > 0) {
+          setResultados(data2);
+        } else {
+          setErro("Nenhum endereço encontrado.");
+          setDica("Tente separar com vírgulas: \"Rua, Cidade, UF\"");
+        }
       } else if (Array.isArray(data)) {
         setResultados(data);
       } else {
@@ -225,52 +156,68 @@ function BuscaEndereco() {
     } finally {
       setCarregando(false);
     }
+  }, [query]);
+
+  function onQueryChange(texto: string) {
+    setQuery(texto);
+
+    // Auto-buscar se digitou CEP completo
+    const limpo = texto.replace(/\D/g, "");
+    if (limpo.length === 8 && /^\d{5}-?\d{3}$/.test(texto.trim())) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => buscar(texto), 400);
+    }
   }
 
   return (
     <div className="space-y-4">
-      <div className="grid sm:grid-cols-3 gap-3">
-        <select
-          value={uf}
-          onChange={(e) => { setUf(e.target.value); cidadeAc.setValor(""); ruaAc.setValor(""); }}
-          className="h-12 px-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-xl text-white focus:outline-none focus:border-violet-500/50 transition-all appearance-none cursor-pointer"
-        >
-          <option value="" className="bg-[#0c0a14]">Estado (UF)</option>
-          {UFS.map((u) => (
-            <option key={u} value={u} className="bg-[#0c0a14]">{u}</option>
-          ))}
-        </select>
-        <AutocompleteInput
-          placeholder="Cidade"
-          valor={cidadeAc.valor}
-          sugestoes={cidadeAc.sugestoes}
-          aberto={cidadeAc.aberto}
-          onChange={cidadeAc.onChange}
-          onSelect={cidadeAc.selecionar}
-          onBlur={cidadeAc.fechar}
-        />
-        <AutocompleteInput
-          placeholder="Rua / Logradouro"
-          valor={ruaAc.valor}
-          sugestoes={ruaAc.sugestoes}
-          aberto={ruaAc.aberto}
-          onChange={ruaAc.onChange}
-          onSelect={ruaAc.selecionar}
-          onBlur={ruaAc.fechar}
-          onKeyDown={(e) => e.key === "Enter" && buscar()}
-        />
+      <div className="relative">
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <svg className="absolute left-4 top-1/2 -translate-y-1/2 size-5 text-white/30" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input
+              placeholder="Digite um CEP ou endereço (ex: Paulista, São Paulo, SP)"
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && buscar()}
+              className="w-full h-14 pl-12 pr-4 text-base bg-white/[0.06] border border-white/[0.1] rounded-2xl text-white placeholder:text-white/30 focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/30 transition-all"
+            />
+          </div>
+          <button
+            onClick={() => buscar()}
+            disabled={carregando || !query.trim()}
+            className="h-14 px-7 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-medium rounded-2xl transition-colors cursor-pointer whitespace-nowrap"
+          >
+            {carregando ? "Buscando..." : "Consultar"}
+          </button>
+        </div>
+        {!query && (
+          <div className="flex flex-wrap gap-2 mt-3">
+            {["01001-000", "Paulista, São Paulo, SP", "Diana, São Paulo, SP"].map((ex) => (
+              <button
+                key={ex}
+                onClick={() => { setQuery(ex); buscar(ex); }}
+                className="text-xs px-3 py-1.5 rounded-lg bg-white/[0.04] text-white/30 hover:text-white/60 hover:bg-white/[0.08] transition-colors cursor-pointer"
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      <button
-        onClick={buscar}
-        disabled={carregando}
-        className="h-12 px-6 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white font-medium rounded-xl transition-colors cursor-pointer"
-      >
-        {carregando ? "Buscando..." : "Buscar CEP"}
-      </button>
-      {erro && <p className="text-sm text-red-400">{erro}</p>}
+      {erro && (
+        <div>
+          <p className="text-sm text-red-400">{erro}</p>
+          {dica && <p className="text-xs text-white/30 mt-1">{dica}</p>}
+        </div>
+      )}
       {resultados.length > 0 && (
         <div className="space-y-3">
-          <p className="text-sm text-white/40">{resultados.length} resultado{resultados.length > 1 ? "s" : ""}</p>
+          {resultados.length > 1 && (
+            <p className="text-sm text-white/40">{resultados.length} resultados</p>
+          )}
           {resultados.map((r, i) => (
             <ResultadoCep key={i} endereco={r} />
           ))}
@@ -281,8 +228,6 @@ function BuscaEndereco() {
 }
 
 export default function ConsultaPage() {
-  const [aba, setAba] = useState<"cep" | "endereco">("cep");
-
   return (
     <div className="min-h-screen bg-[#0c0a14] text-white">
       {/* Header */}
@@ -304,39 +249,18 @@ export default function ConsultaPage() {
 
       <main className="max-w-3xl mx-auto px-6 py-16">
         {/* Hero */}
-        <div className="mb-10">
+        <div className="mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-tight mb-3">
             Consultar CEP
           </h1>
           <p className="text-lg text-white/50 leading-relaxed">
-            Busque qualquer CEP do Brasil ou encontre o CEP de um endereço.
-            Base oficial dos Correios atualizada.
+            Digite um CEP ou endereço para buscar. Base oficial dos Correios.
           </p>
         </div>
 
-        {/* Abas */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setAba("cep")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-              aba === "cep" ? "bg-violet-600 text-white" : "bg-white/[0.06] text-white/50 hover:text-white"
-            }`}
-          >
-            Buscar por CEP
-          </button>
-          <button
-            onClick={() => setAba("endereco")}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-              aba === "endereco" ? "bg-violet-600 text-white" : "bg-white/[0.06] text-white/50 hover:text-white"
-            }`}
-          >
-            Buscar por endereço
-          </button>
-        </div>
-
-        {/* Busca */}
+        {/* Busca unificada */}
         <section className="mb-20">
-          {aba === "cep" ? <BuscaCep /> : <BuscaEndereco />}
+          <BuscaUnificada />
         </section>
 
         {/* Conteúdo SEO */}
@@ -505,7 +429,7 @@ export default function ConsultaPage() {
                 },
                 {
                   p: "Como descobrir o CEP de um endereço?",
-                  r: "Use a aba \"Buscar por endereço\": selecione o estado, digite a cidade e o nome da rua. O sistema retornará todos os CEPs correspondentes.",
+                  r: "Digite o endereço no campo de busca no formato \"Rua, Cidade, UF\" (ex: Paulista, São Paulo, SP). O sistema retornará todos os CEPs correspondentes.",
                 },
                 {
                   p: "O CEP pode mudar?",
