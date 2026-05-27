@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ApiStatus } from "@/components/api-status";
 
 function CodeBlock({ children, compact }: { children: string; compact?: boolean }) {
   const [copiado, setCopiado] = useState(false);
@@ -335,6 +336,9 @@ export default function McpPage() {
           <p className="text-xs text-white/30">
             Base de dados: Correios (eDNE) — consultadecep.com
           </p>
+          <div className="mt-3">
+            <ApiStatus />
+          </div>
         </div>
       </footer>
     </div>

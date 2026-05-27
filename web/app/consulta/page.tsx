@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { ApiStatus } from "@/components/api-status";
 
 interface Endereco {
   cep: string;
@@ -494,6 +495,9 @@ export default function ConsultaPage() {
           <p className="text-xs text-white/30">
             Base de dados: Correios (eDNE) — consultadecep.com
           </p>
+          <div className="mt-3">
+            <ApiStatus />
+          </div>
           <p className="text-xs text-white/20 mt-2">
             <Link href="/privacidade" className="hover:text-white/40 transition-colors underline underline-offset-2">
               Política de Privacidade

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { ApiStatus } from "@/components/api-status";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
 const CEP_TESTE = "01001000";
@@ -354,6 +355,9 @@ export default function StatusPage() {
             <p className="text-xs text-white/30">
               Base de dados: Correios (eDNE) — consultadecep.com
             </p>
+          </div>
+          <div className="mt-4 flex justify-center sm:justify-start">
+            <ApiStatus />
           </div>
         </div>
       </footer>

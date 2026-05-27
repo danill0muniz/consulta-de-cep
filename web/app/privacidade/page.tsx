@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ApiStatus } from "@/components/api-status";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -202,6 +203,9 @@ export default function PrivacidadePage() {
           <p className="text-xs text-white/30">
             Base de dados: Correios (eDNE) — consultadecep.com
           </p>
+          <div className="mt-3">
+            <ApiStatus />
+          </div>
         </div>
       </footer>
     </div>
