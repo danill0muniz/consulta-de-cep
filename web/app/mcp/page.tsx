@@ -221,42 +221,51 @@ export default function McpPage() {
 
           {/* ChatGPT */}
           <div>
-            <h3 className="text-lg font-semibold mb-3">ChatGPT (GPT personalizado)</h3>
+            <h3 className="text-lg font-semibold mb-3">ChatGPT</h3>
             <p className="text-sm text-white/50 mb-4">
-              O ChatGPT não suporta MCP, mas você pode criar um <strong className="text-white/70">GPT personalizado</strong> com Actions:
+              Use nosso GPT pronto na loja do ChatGPT — basta clicar e começar a consultar:
             </p>
-            <ol className="text-sm text-white/50 space-y-3 list-decimal list-inside leading-relaxed">
-              <li>
-                Acesse{" "}
-                <a href="https://chatgpt.com/gpts/editor" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors">
-                  chatgpt.com/gpts/editor
-                </a>
-              </li>
-              <li>Na aba <strong className="text-white/70">Configure</strong>, dê um nome (ex: &quot;Consulta de CEP&quot;) e uma descrição</li>
-              <li>
-                Em <strong className="text-white/70">Instructions</strong>, cole:
-              </li>
-            </ol>
-            <div className="mt-3 mb-4">
-              <CodeBlock compact>{`Você é um assistente que consulta CEPs brasileiros.
-Use a action buscarCep para consultar por CEP.
-Use a action buscarEndereco para buscar por endereço (UF, cidade, logradouro).
-Sempre formate o resultado de forma clara para o usuário.`}</CodeBlock>
-            </div>
-            <ol start={4} className="text-sm text-white/50 space-y-3 list-decimal list-inside leading-relaxed">
-              <li>
-                Em <strong className="text-white/70">Actions</strong>, clique em <strong className="text-white/70">Create new action</strong>
-              </li>
-              <li>
-                Clique em <strong className="text-white/70">&quot;Import from URL&quot;</strong> e cole:
-              </li>
-            </ol>
-            <div className="mt-3 mb-4">
-              <CodeBlock compact>{`https://consultadecep.com/api/openapi`}</CodeBlock>
-            </div>
-            <ol start={6} className="text-sm text-white/50 space-y-3 list-decimal list-inside leading-relaxed">
-              <li>Clique em <strong className="text-white/70">Save</strong> e pronto — seu GPT já consulta CEPs</li>
-            </ol>
+            <a
+              href="https://chatgpt.com/g/g-6a16dd603bd0819196e0ce6773ef625a-consulta-de-cep"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-6 py-4 rounded-2xl bg-[#10a37f]/10 border border-[#10a37f]/20 hover:bg-[#10a37f]/20 transition-all group"
+            >
+              <svg className="size-8 text-[#10a37f]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" />
+              </svg>
+              <div>
+                <span className="text-sm font-semibold text-[#10a37f] group-hover:text-[#0d8c6d] transition-colors">
+                  Usar no ChatGPT
+                </span>
+                <span className="block text-xs text-white/30 mt-0.5">
+                  Abrir GPT &quot;Consulta de CEP&quot; na loja
+                </span>
+              </div>
+              <svg className="size-4 text-white/20 group-hover:text-white/40 transition-colors ml-auto" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+              </svg>
+            </a>
+
+            <details className="mt-6">
+              <summary className="text-sm text-white/40 cursor-pointer hover:text-white/60 transition-colors">
+                Ou crie seu próprio GPT personalizado
+              </summary>
+              <div className="mt-4 space-y-4">
+                <ol className="text-sm text-white/50 space-y-3 list-decimal list-inside leading-relaxed">
+                  <li>
+                    Acesse{" "}
+                    <a href="https://chatgpt.com/gpts/editor" target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors">
+                      chatgpt.com/gpts/editor
+                    </a>
+                  </li>
+                  <li>Na aba <strong className="text-white/70">Configure</strong>, dê um nome e uma descrição</li>
+                  <li>Em <strong className="text-white/70">Actions</strong> → <strong className="text-white/70">Create new action</strong> → <strong className="text-white/70">Import from URL</strong>:</li>
+                </ol>
+                <CodeBlock compact>{`https://consultadecep.com/api/openapi`}</CodeBlock>
+                <p className="text-xs text-white/30">Clique em Save e pronto — seu GPT já consulta CEPs.</p>
+              </div>
+            </details>
           </div>
         </section>
 
