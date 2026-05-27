@@ -225,14 +225,14 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#0c0a14]/80 backdrop-blur-xl border-b border-white/[0.06]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="size-8 rounded-lg bg-violet-600 flex items-center justify-center font-mono">
               <span className="text-white text-[11px] font-bold">&lt;/&gt;</span>
             </div>
             <span className="text-base font-semibold tracking-tight">
               Consulta de CEP
             </span>
-          </div>
+          </Link>
           <nav className="hidden sm:flex items-center gap-8 text-[13px] font-medium text-white/50">
             <a href="#documentacao" className="hover:text-white transition-colors">
               Documentação
@@ -324,78 +324,165 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
               Documentação
             </h2>
-            <p className="mt-3 text-white/40 text-lg">
-              Dois endpoints, zero configuração.
+            <p className="mt-3 text-white/40 text-lg max-w-3xl leading-relaxed">
+              Webservice gratuito de alto desempenho para consulta de Código de Endereçamento Postal (CEP) do Brasil.
+              Basta uma requisição HTTP — sem autenticação, sem cadastro.
             </p>
           </div>
 
-          <div className="space-y-6">
-            {/* Endpoint 1 */}
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-              <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
-                <span className="text-xs font-bold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-2.5 py-1 rounded-lg">
-                  GET
-                </span>
-                <span className="font-mono text-sm text-white/70">
-                  /ws/&#123;cep&#125;/json/
-                </span>
-              </div>
-              <div className="p-6">
-                <p className="text-sm text-white/50 mb-5">
-                  Retorna o endereço completo a partir de um CEP. Aceita com ou sem hífen.
+          <div className="space-y-16">
+            {/* Acessando o webservice */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Acessando o webservice</h3>
+              <div className="text-sm text-white/50 space-y-3 max-w-3xl leading-relaxed">
+                <p>
+                  Para acessar o webservice, um CEP no formato de <strong className="text-white/70">8 dígitos</strong> deve
+                  ser fornecido. Após o CEP, informe o tipo de retorno desejado: <code className="bg-white/[0.06] text-violet-300 px-1.5 py-0.5 rounded">json</code>.
                 </p>
-                <CodeBlock compact>
-                  {`GET ${API_URL}/ws/01001000/json/
-
-// Resposta
-{
-  "cep": "01001-000",
-  "logradouro": "Praça da Sé",
-  "complemento": "- lado ímpar",
-  "bairro": "Sé",
-  "localidade": "São Paulo",
-  "uf": "SP",
-  "ibge": "3550308"
-}`}
-                </CodeBlock>
-                <p className="mt-5 text-xs text-white/30">
-                  CEP não encontrado retorna{" "}
-                  <code className="bg-white/[0.06] text-white/50 px-1.5 py-0.5 rounded">
-                    &#123;&quot;erro&quot;: true&#125;
-                  </code>
+                <p>
+                  Exemplo de consulta:{" "}
+                  <a
+                    href={`${API_URL}/ws/01001000/json/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors font-mono text-xs"
+                  >
+                    {API_URL}/ws/01001000/json/
+                  </a>
                 </p>
               </div>
             </div>
 
-            {/* Endpoint 2 */}
-            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-              <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
-                <span className="text-xs font-bold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-2.5 py-1 rounded-lg">
-                  GET
-                </span>
-                <span className="font-mono text-sm text-white/70">
-                  /ws/&#123;uf&#125;/&#123;cidade&#125;/&#123;logradouro&#125;/json/
-                </span>
-              </div>
-              <div className="p-6">
-                <p className="text-sm text-white/50 mb-5">
-                  Busca CEPs por endereço. Cidade e logradouro com no mínimo 3 caracteres. Retorna até 50 resultados.
+            {/* Validação do CEP */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Validação do CEP</h3>
+              <div className="text-sm text-white/50 space-y-3 max-w-3xl leading-relaxed">
+                <p>
+                  Quando consultado um CEP de formato inválido — por exemplo: &quot;950100100&quot; (9 dígitos),
+                  &quot;95010A10&quot; (alfanumérico), &quot;95010 10&quot; (espaço) — o código de retorno será
+                  um <strong className="text-white/70">400</strong> (Bad Request). Antes de acessar o webservice,
+                  valide o formato do CEP e certifique-se que o mesmo possua <strong className="text-white/70">8 dígitos numéricos</strong>.
                 </p>
-                <CodeBlock compact>
-                  {`GET ${API_URL}/ws/SP/São Paulo/Paulista/json/
+                <p>
+                  Quando consultado um CEP de formato válido, porém inexistente (ex: &quot;99999999&quot;),
+                  o retorno conterá um valor de <code className="bg-white/[0.06] text-violet-300 px-1.5 py-0.5 rounded">&quot;erro&quot;: true</code>.
+                  Isso significa que o CEP não foi encontrado na base de dados.
+                </p>
+              </div>
+            </div>
 
-// Resposta (array)
+            {/* Formato de retorno */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Formato de retorno</h3>
+              <p className="text-sm text-white/50 mb-5 max-w-3xl leading-relaxed">
+                A resposta é retornada em formato JSON. Veja abaixo um exemplo de consulta e a resposta completa:
+              </p>
+
+              <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+                <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
+                  <span className="text-xs font-bold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-2.5 py-1 rounded-lg">
+                    GET
+                  </span>
+                  <a
+                    href={`${API_URL}/ws/01001000/json/`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-mono text-sm text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors"
+                  >
+                    /ws/01001000/json/
+                  </a>
+                </div>
+                <div className="p-6">
+                  <CodeBlock compact>
+                    {`{
+  "cep": "01001-000",
+  "logradouro": "Praça da Sé",
+  "complemento": "- lado ímpar",
+  "unidade": "",
+  "bairro": "Sé",
+  "localidade": "São Paulo",
+  "uf": "SP",
+  "ibge": "3550308",
+  "gia": "",
+  "ddd": "",
+  "siafi": ""
+}`}
+                  </CodeBlock>
+                </div>
+              </div>
+            </div>
+
+            {/* Pesquisa de CEP */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Pesquisa de CEP por endereço</h3>
+              <div className="text-sm text-white/50 space-y-3 max-w-3xl leading-relaxed">
+                <p>
+                  Existem situações onde o cliente desconhece o CEP do endereço. Para isso,
+                  é possível realizar uma pesquisa informando três parâmetros obrigatórios:
+                  <strong className="text-white/70"> UF</strong>,
+                  <strong className="text-white/70"> Cidade</strong> e
+                  <strong className="text-white/70"> Logradouro</strong>.
+                  Cidade e Logradouro devem ter no mínimo 3 caracteres.
+                </p>
+                <p>
+                  O resultado é ordenado pela proximidade do nome do logradouro e possui limite
+                  máximo de <strong className="text-white/70">50 CEPs</strong>. Quanto mais específicos os parâmetros,
+                  maior a precisão do resultado.
+                </p>
+                <p>Exemplos de pesquisa por endereço:</p>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {[
+                  { url: `${API_URL}/ws/RS/Porto Alegre/Domingos/json/`, label: "Busca por \"Domingos\" em Porto Alegre/RS" },
+                  { url: `${API_URL}/ws/SP/São Paulo/Paulista/json/`, label: "Busca por \"Paulista\" em São Paulo/SP" },
+                  { url: `${API_URL}/ws/SP/Ribeirão Preto/Nove de Julho/json/`, label: "Busca por \"Nove de Julho\" em Ribeirão Preto/SP" },
+                ].map((ex) => (
+                  <div key={ex.url} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                    <a
+                      href={ex.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-mono text-xs text-violet-400 hover:text-violet-300 underline underline-offset-2 transition-colors break-all"
+                    >
+                      {ex.url}
+                    </a>
+                    <span className="text-xs text-white/30 hidden sm:inline">—</span>
+                    <span className="text-xs text-white/30">{ex.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] overflow-hidden">
+                <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-3">
+                  <span className="text-xs font-bold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-2.5 py-1 rounded-lg">
+                    GET
+                  </span>
+                  <span className="font-mono text-sm text-white/70">
+                    /ws/&#123;uf&#125;/&#123;cidade&#125;/&#123;logradouro&#125;/json/
+                  </span>
+                </div>
+                <div className="p-6">
+                  <CodeBlock compact>
+                    {`// Resposta (array de resultados)
 [
   {
     "cep": "01310-100",
     "logradouro": "Avenida Paulista",
+    "complemento": "- até 610 - lado par",
     "bairro": "Bela Vista",
     "localidade": "São Paulo",
-    "uf": "SP"
+    "uf": "SP",
+    "ibge": "3550308"
   },
   ...
 ]`}
-                </CodeBlock>
+                  </CodeBlock>
+                  <p className="mt-4 text-xs text-white/30">
+                    Quando a cidade ou logradouro não contiver ao menos 3 caracteres, o retorno será
+                    um <strong className="text-white/50">400</strong> (Bad Request).
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -554,14 +641,14 @@ curl "${API_URL}/ws/SP/São Paulo/Paulista/json/"`,
       <footer className="border-t border-white/[0.06] py-10 mt-auto">
         <div className="max-w-6xl mx-auto px-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
+            <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
               <div className="size-6 rounded-md bg-violet-600 flex items-center justify-center font-mono">
                 <span className="text-white text-[9px] font-bold">&lt;/&gt;</span>
               </div>
               <span className="text-sm font-medium text-white/70">
                 Consulta de CEP
               </span>
-            </div>
+            </Link>
             <p className="text-xs text-white/30">
               Base de dados: Correios (eDNE) — consultadecep.com
             </p>
