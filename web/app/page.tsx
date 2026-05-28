@@ -330,6 +330,62 @@ curl "${API_DISPLAY}/ws/SP/São Paulo/Paulista/json/"`,
         </div>
       </section>
 
+      {/* Casos de uso */}
+      <section className="py-24 border-b border-white/[0.06]">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="mb-14">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
+              Casos de uso
+            </h2>
+            <p className="mt-3 text-white/40 text-lg max-w-3xl leading-relaxed">
+              A consulta de CEP é essencial em diversas operações do dia a dia. Veja como integrar.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[
+              {
+                icone: "🛒",
+                titulo: "Checkout e E-commerce",
+                descricao:
+                  "Preencha endereços automaticamente no checkout. Reduza abandono de carrinho e erros de entrega.",
+              },
+              {
+                icone: "🚚",
+                titulo: "Cálculo de Frete",
+                descricao:
+                  "Obtenha dados geográficos precisos para calcular fretes e prazos de entrega com exatidão.",
+              },
+              {
+                icone: "📋",
+                titulo: "Cadastro de Clientes",
+                descricao:
+                  "Valide e complete endereços em formulários de cadastro. Menos erros, dados mais limpos.",
+              },
+              {
+                icone: "📊",
+                titulo: "Enriquecimento de Dados",
+                descricao:
+                  "Complete sua base de dados com cidade, estado, bairro e código IBGE a partir do CEP.",
+              },
+            ].map((caso) => (
+              <div
+                key={caso.titulo}
+                className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6 hover:border-white/[0.15] hover:bg-white/[0.04] transition-all"
+              >
+                <span className="text-2xl">{caso.icone}</span>
+                <h3 className="font-semibold text-white mt-3 mb-2">
+                  {caso.titulo}
+                </h3>
+                <p className="text-sm text-white/40 leading-relaxed">
+                  {caso.descricao}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Documentação */}
       <section id="documentacao" className="py-24">
         <div className="max-w-6xl mx-auto px-6">
