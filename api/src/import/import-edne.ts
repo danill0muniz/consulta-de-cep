@@ -3,6 +3,53 @@ import path from 'path';
 import { createDatabase, createTables, createIndexes } from '../database/schema';
 import type Database from 'better-sqlite3';
 
+const normalize = (s: string) =>
+  s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+
+function carregarMapaTipoLogradouro(): (tloTx: string | null) => string {
+  const txtPath = path.join(__dirname, '..', '..', '..', 'tipoLogradouro.txt');
+  const conteudo = fs.readFileSync(txtPath, 'utf-8');
+  const txtMap = new Map<string, string>();
+
+  for (const linha of conteudo.split(/\r?\n/)) {
+    const idx = linha.indexOf(' - ');
+    if (idx === -1) continue;
+    txtMap.set(normalize(linha.slice(idx + 3).trim()), linha.slice(0, idx).trim());
+  }
+
+  const manuais = new Map<string, string>(Object.entries({
+    'Comunidade Urbana': 'FAV', 'Comunidade': 'FAV', 'Comunidade Rural': 'FAV',
+    'Comunidade Quilombola': 'FAV', 'Comunidade Sitio': 'FAV',
+    'Chácaras': 'CH', 'Blocos': 'BL', 'Pracinha': 'PC', 'Bulevar': 'BVD',
+    'Calçadão': 'CALC', 'Ruela': 'R', 'Escadão': 'ESC', 'Vicinal': 'EST',
+    'Vicinal Municipal': 'EST', 'Marginal': 'AV', 'Anel Viário': 'AV',
+    'Semi Anel Viário': 'AV', 'Anel': 'AV', 'Nova Avenida': 'AV',
+    'Segunda Avenida': 'AV', 'Terceira Avenida': 'AV', 'Pontilhão': 'PTE',
+    'Antiga Estação': 'ETC', 'Quarta Ladeira': 'LD', 'Eixo': 'ART',
+    'Eixo Principal': 'ART', 'Eixo Industrial': 'ART', 'Travessia': 'TV',
+    'Transversal': 'TV', 'Trilha': 'CAM', 'Alça': 'AC', 'Alça de Acesso': 'AC',
+  }));
+
+  return (tloTx: string | null): string => {
+    if (!tloTx) return '';
+    if (manuais.has(tloTx)) return manuais.get(tloTx)!;
+
+    const norm = normalize(tloTx);
+    if (txtMap.has(norm)) return txtMap.get(norm)!;
+
+    const semOrd = normalize(tloTx.replace(/^\d+[ªº]\s+/, ''));
+    if (txtMap.has(semOrd)) return txtMap.get(semOrd)!;
+
+    const primeira = norm.split(/\s+/)[0];
+    if (primeira && txtMap.has(primeira)) return txtMap.get(primeira)!;
+
+    const primeiraSemOrd = semOrd.split(/\s+/)[0];
+    if (primeiraSemOrd && txtMap.has(primeiraSemOrd)) return txtMap.get(primeiraSemOrd)!;
+
+    return '';
+  };
+}
+
 const BASE_DIR = path.join(__dirname, '..', '..', '..', 'eDNE_Basico_26051', 'Delimitado');
 
 const UFS = [
@@ -83,9 +130,11 @@ function importarBairros(db: Database.Database): void {
 function importarLogradouros(db: Database.Database): void {
   console.log('Importando logradouros...');
 
+  const resolverId = carregarMapaTipoLogradouro();
+
   const stmt = db.prepare(`
-    INSERT OR REPLACE INTO logradouros (log_nu, ufe_sg, loc_nu, bai_nu_ini, bai_nu_fim, log_no, log_complemento, cep, tlo_tx, log_sta_tlo, log_no_abrev)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT OR REPLACE INTO logradouros (log_nu, ufe_sg, loc_nu, bai_nu_ini, bai_nu_fim, log_no, log_complemento, cep, tlo_tx, log_sta_tlo, log_no_abrev, id_logradouro)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   let total = 0;
@@ -95,7 +144,7 @@ function importarLogradouros(db: Database.Database): void {
 
     const inserir = db.transaction(() => {
       for (const campos of registros) {
-        // log_nu @ ufe_sg @ loc_nu @ bai_nu_ini @ bai_nu_fim @ log_no @ log_complemento @ cep @ tlo_tx @ log_sta_tlo @ log_no_abrev
+        const tloTx = campos[8] || null;
         stmt.run(
           parseInt(campos[0]),
           campos[1],
@@ -105,9 +154,10 @@ function importarLogradouros(db: Database.Database): void {
           campos[5],
           campos[6] || null,
           campos[7],
-          campos[8] || null,
+          tloTx,
           campos[9] || null,
-          campos[10] || null
+          campos[10] || null,
+          resolverId(tloTx)
         );
       }
     });

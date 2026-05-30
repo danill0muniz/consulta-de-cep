@@ -13,6 +13,8 @@ function getDatabase(): Database.Database {
 interface CepResult {
   cep: string;
   logradouro: string;
+  tipo_logradouro: string;
+  id_logradouro: string;
   complemento: string;
   unidade: string;
   bairro: string;
@@ -40,6 +42,8 @@ export function buscarPorCep(cepInput: string): CepResult | null {
         THEN l.tlo_tx || ' ' || l.log_no
         ELSE l.log_no
       END as logradouro,
+      CASE WHEN l.log_sta_tlo = 'S' THEN COALESCE(l.tlo_tx, '') ELSE '' END as tipo_logradouro,
+      COALESCE(l.id_logradouro, '') as id_logradouro,
       COALESCE(l.log_complemento, '') as complemento,
       COALESCE(b.bai_no, '') as bairro,
       loc.loc_no as localidade,
@@ -55,6 +59,8 @@ export function buscarPorCep(cepInput: string): CepResult | null {
     return {
       cep: formatarCepExibicao(cep),
       logradouro: logradouro.logradouro || '',
+      tipo_logradouro: logradouro.tipo_logradouro || '',
+      id_logradouro: logradouro.id_logradouro || '',
       complemento: logradouro.complemento || '',
       unidade: '',
       bairro: logradouro.bairro || '',
@@ -87,6 +93,8 @@ export function buscarPorCep(cepInput: string): CepResult | null {
     return {
       cep: formatarCepExibicao(cep),
       logradouro: gu.logradouro || '',
+      tipo_logradouro: '',
+      id_logradouro: '',
       complemento: gu.complemento || '',
       unidade: '',
       bairro: gu.bairro || '',
@@ -119,6 +127,8 @@ export function buscarPorCep(cepInput: string): CepResult | null {
     return {
       cep: formatarCepExibicao(cep),
       logradouro: uop.logradouro || '',
+      tipo_logradouro: '',
+      id_logradouro: '',
       complemento: uop.complemento || '',
       unidade: '',
       bairro: uop.bairro || '',
@@ -146,6 +156,8 @@ export function buscarPorCep(cepInput: string): CepResult | null {
     return {
       cep: formatarCepExibicao(cep),
       logradouro: '',
+      tipo_logradouro: '',
+      id_logradouro: '',
       complemento: '',
       unidade: '',
       bairro: '',
@@ -175,6 +187,8 @@ export function buscarPorCep(cepInput: string): CepResult | null {
     return {
       cep: formatarCepExibicao(cep),
       logradouro: '',
+      tipo_logradouro: '',
+      id_logradouro: '',
       complemento: '',
       unidade: '',
       bairro: '',
@@ -204,6 +218,8 @@ export function buscarPorEndereco(uf: string, cidade: string, logradouro: string
         THEN l.tlo_tx || ' ' || l.log_no
         ELSE l.log_no
       END as logradouro,
+      CASE WHEN l.log_sta_tlo = 'S' THEN COALESCE(l.tlo_tx, '') ELSE '' END as tipo_logradouro,
+      COALESCE(l.id_logradouro, '') as id_logradouro,
       COALESCE(l.log_complemento, '') as complemento,
       COALESCE(b.bai_no, '') as bairro,
       loc.loc_no as localidade,
@@ -222,6 +238,8 @@ export function buscarPorEndereco(uf: string, cidade: string, logradouro: string
   return resultados.map(r => ({
     cep: formatarCepExibicao(r.cep),
     logradouro: r.logradouro || '',
+    tipo_logradouro: r.tipo_logradouro || '',
+    id_logradouro: r.id_logradouro || '',
     complemento: r.complemento || '',
     unidade: '',
     bairro: r.bairro || '',

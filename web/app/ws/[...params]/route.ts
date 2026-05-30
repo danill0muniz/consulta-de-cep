@@ -59,6 +59,8 @@ function enriquecer(dados: Record<string, string>) {
   return {
     cep: dados.cep || '',
     logradouro: dados.logradouro || '',
+    tipo_logradouro: dados.tipo_logradouro || '',
+    id_logradouro: dados.id_logradouro || '',
     complemento: dados.complemento || '',
     unidade: dados.unidade || '',
     bairro: dados.bairro || '',
@@ -141,7 +143,7 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
 
   const { data: logradouros } = await supabase
     .from('logradouros')
-    .select('cep, log_no, log_complemento, tlo_tx, log_sta_tlo, ufe_sg, loc_nu, bai_nu_ini')
+    .select('cep, log_no, log_complemento, tlo_tx, log_sta_tlo, id_logradouro, ufe_sg, loc_nu, bai_nu_ini')
     .eq('ufe_sg', ufUpper)
     .in('loc_nu', locNus)
     .ilike('log_no', `%${logradouroDecoded}%`)
@@ -168,10 +170,13 @@ async function buscarPorEndereco(uf: string, cidade: string, logradouro: string)
     const extra = extraMap.get(loc?.mun_nu) || { ddd: '', siafi_id: '', gia: '' };
     const nome = l.log_sta_tlo === 'S' && l.tlo_tx
       ? `${l.tlo_tx} ${l.log_no}` : l.log_no;
+    const tipoLog = l.log_sta_tlo === 'S' ? (l.tlo_tx || '') : '';
 
     return enriquecer({
       cep: formatarCep(l.cep),
       logradouro: nome || '',
+      tipo_logradouro: tipoLog,
+      id_logradouro: l.id_logradouro || '',
       complemento: l.log_complemento || '',
       unidade: '',
       bairro: bairroMap.get(l.bai_nu_ini) || '',

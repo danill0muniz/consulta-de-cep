@@ -47,7 +47,8 @@ export function createTables(db: Database.Database): void {
       cep TEXT NOT NULL,
       tlo_tx TEXT,
       log_sta_tlo TEXT,
-      log_no_abrev TEXT
+      log_no_abrev TEXT,
+      id_logradouro TEXT DEFAULT ''
     );
 
     CREATE TABLE IF NOT EXISTS grandes_usuarios (
